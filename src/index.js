@@ -21,9 +21,9 @@ export default function BaseballGame() {
 // <button id="game-restart-button">재시작</button>
 const init = () => {
 	console.log("init");
+	const baseballGame = new BaseballGame();
 	document.querySelector("#submit").addEventListener("click", (e) => {
 		e.preventDefault();
-		const baseballGame = new BaseballGame();
 		const computerInput = baseballGame.setAnswer();
 		const userInput = baseballGame.getUserInput();
 		const result = baseballGame.play(computerInput, userInput);
