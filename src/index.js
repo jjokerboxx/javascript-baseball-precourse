@@ -4,6 +4,8 @@
 
 export default function BaseballGame() {
   this.isSolved = false;
+
+  // 재시작 버튼 HTML 생성
   this.createRestartBTN = () => {
     let $restartBTN = document.createElement("button");
     $restartBTN.id = "game-restart-button";
@@ -15,11 +17,8 @@ export default function BaseballGame() {
         this.restartGame();
       });
   };
-  this.checkAnswer = () => {
-    if (this.isSolved === true) {
-      this.createRestartBTN();
-    }
-  };
+
+  // 재시작
   this.restartGame = () => {
     this.isSolved = false;
     this.setAnswer();
@@ -28,6 +27,7 @@ export default function BaseballGame() {
     document.querySelector("#result").innerHTML = "";
   };
 
+  // 정답 생성
   this.setAnswer = () => {
     let NUMBERS = [1, 2, 3, 4, 5, 6, 7, 8, 9];
     let arry = [];
@@ -35,21 +35,25 @@ export default function BaseballGame() {
       const number = Math.floor(Math.random() * 9);
       arry.push(NUMBERS[number]);
     }
-    const answer = arry.join("");
-    console.log(answer);
-    return answer;
+    // 중복 제거
+    if (arry.length === [...new Set(arry)].length) {
+      const answer = arry.join("");
+      console.log(typeof answer, answer);
+      return answer;
+    } else {
+      this.setAnswer();
+    }
   };
 
+  // 사용자 입력
   this.getUserInput = () => {
     const input = document.querySelector("#user-input").value;
     console.log(input);
     return input;
   };
-  this.play = function (computerInputNumbers, userInputNumbers) {
-    let outcome = "";
-    let ballCounter = 0;
-    let computerInputArray = [...computerInputNumbers];
-    let userInputArray = [...userInputNumbers];
+
+  // 스트라이크 카운트
+  this.countStrike = (computerInputArray, userInputArray) => {
     let strikeArry = [];
     for (let i = 0; i < 3; i++) {
       if (userInputArray[i] === computerInputArray[i]) {
@@ -60,20 +64,37 @@ export default function BaseballGame() {
       computerInputArray.splice(computerInputArray.indexOf(a), 1);
       userInputArray.splice(userInputArray.indexOf(a), 1);
     });
-    console.log(computerInputArray, userInputArray);
-
     if (strikeArry.length === 3) {
-      return "3스트라이크";
       this.isSolved = true;
     }
+    return strikeArry;
+  };
 
-    // 3 볼일 때 경우의 수 수정하기!!
-    userInputArray.forEach((a) => {
-      if (computerInputArray.includes(a)) {
+  // 볼 카운트
+  this.countBall = (computerInputArray, userInputArray) => {
+    let ballCounter = 0;
+    let coppiedArray = [...computerInputArray];
+
+    for (let i = 0; i < userInputArray.length; i++) {
+      let a = userInputArray[i];
+      if (coppiedArray.includes(a)) {
         ballCounter++;
+        let idx = coppiedArray.indexOf(a);
+        coppiedArray.splice(idx, 1);
       }
-    });
+    }
+    return ballCounter;
+  };
 
+  // 채점 로직
+  this.play = function (computerInputNumbers, userInputNumbers) {
+    let outcome = "";
+    let computerInputArray = [...computerInputNumbers.toString()];
+    let userInputArray = [...userInputNumbers];
+
+    let strikeArry = this.countStrike(computerInputArray, userInputArray);
+    let ballCounter = this.countBall(computerInputArray, userInputArray);
+    // 출력
     if (ballCounter !== 0 || strikeArry.length !== 0) {
       outcome = `${ballCounter == 0 ? "" : ballCounter.toString() + "볼"} ${
         strikeArry.length == 0 ? "" : strikeArry.length + "스트라이크"
@@ -84,11 +105,18 @@ export default function BaseballGame() {
     return outcome;
   };
 
+  // 결과 출력
   this.printResult = (result) => {
-    document.querySelector("#result").innerHTML = result;
+    if (this.isSolved) {
+      document.querySelector("#result").innerHTML = "정답을 맞추셨습니다!";
+      this.createRestartBTN();
+    } else {
+      document.querySelector("#result").innerHTML = result;
+    }
   };
 }
 
+// 인스턴스 생성
 const init = () => {
   console.log("init");
 
@@ -100,7 +128,6 @@ const init = () => {
     const userInput = baseballGame.getUserInput();
     const result = baseballGame.play(computerInput, userInput);
     baseballGame.printResult(result);
-    baseballGame.checkAnswer();
   });
 };
 
